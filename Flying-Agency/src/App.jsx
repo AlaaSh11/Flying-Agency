@@ -1,121 +1,98 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import React, { useState } from 'react';
+import Nav from './components/Nav.jsx';
+import useCursor from './hooks/useCursor';
+import HomePage from './pages/HomePage.jsx';
+import SearchPage from './pages/SearchPage.jsx';
+import LoginPage from './pages/LoginPage.jsx';
+import RegisterPage from './pages/RegisterPage.jsx';
+import DashboardPage from './pages/DashboardPage.jsx';
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  useCursor();
+  const [page, setPage] = useState('home');
+  const [mode, setMode] = useState('dark');
+
+  const darkTheme = {
+    bg: '#0C0610',
+    bgCard: '#14101a',
+    bgCard2: '#1a1320',
+    text: '#F8F4FF',
+    textMuted: '#B7AFC6',
+    a: '#F07AB8',
+    b: '#8B5CF6',
+    grad: 'linear-gradient(135deg,#F07AB8 0%,#8B5CF6 100%)',
+    gradR: 'linear-gradient(135deg,#8B5CF6 0%,#F07AB8 100%)',
+    glow: 'rgba(240,122,184,0.20)',
+    border: 'rgba(255,255,255,0.08)',
+    borderH: 'rgba(255,255,255,0.16)',
+    cardB: 'rgba(255,255,255,0.07)',
+    badge: 'rgba(255,255,255,0.05)',
+    navBg: 'rgba(12,6,16,0.72)',
+    inp: 'rgba(255,255,255,0.04)',
+    heroOv: 'rgba(12,6,16,0.82)',
+    o1: 'rgba(240,122,184,0.18)',
+    o2: 'rgba(139,92,246,0.18)',
+    shimmer: 'linear-gradient(90deg,#F07AB8,#ffffff,#8B5CF6)'
+  };
+
+  const lightTheme = {
+    ...darkTheme,
+    bg: '#f7f3fb',
+    bgCard: '#ffffff',
+    bgCard2: '#f4edf9',
+    text: '#1a1222',
+    textMuted: '#6d617d',
+    border: 'rgba(0,0,0,0.08)',
+    borderH: 'rgba(0,0,0,0.14)',
+    cardB: 'rgba(0,0,0,0.08)',
+    badge: 'rgba(0,0,0,0.04)',
+    navBg: 'rgba(255,255,255,0.70)',
+    inp: 'rgba(0,0,0,0.03)',
+    heroOv: 'rgba(255,255,255,0.72)',
+    o1: 'rgba(240,122,184,0.12)',
+    o2: 'rgba(139,92,246,0.12)',
+    glow: 'rgba(139,92,246,0.16)'
+  };
+
+  const t = mode === 'dark' ? darkTheme : lightTheme;
+  const toggleMode = () => setMode(m => (m === 'dark' ? 'light' : 'dark'));
 
   return (
     <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+      <Nav page={page} setPage={setPage} mode={mode} toggleMode={toggleMode} t={t} />
+      {page === 'home' && <HomePage t={t} setPage={setPage} />}
+      {page === 'search' && <SearchPage t={t} />}
+      {page === 'login' && <LoginPage t={t} setPage={setPage} />}
+      {page === 'register' && <RegisterPage t={t} setPage={setPage} />}
+      {page === 'dashboard' && <DashboardPage t={t} />}
 
-      <div className="ticks"></div>
+      {/* cursor elements */}
+    <div id="cur" style={{
+      position: 'fixed',
+      width: '28px',
+      height: '28px',
+      background: '#f472b6',
+      borderRadius: '50%',
+      pointerEvents: 'none',
+      zIndex: 99999,
+      transition: 'width 0.2s, height 0.2s, opacity 0.2s'
+    }} />
+    <div id="cur-dot" style={{
+      position: 'fixed',
+      width: '5px',
+      height: '5px',
+      background: '#9d174d',
+      borderRadius: '50%',
+      pointerEvents: 'none',
+      zIndex: 99999,
+    }} />
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
+    <Nav page={page} setPage={setPage} mode={mode} toggleMode={toggleMode} t={t} />
+    {page === 'home' && <HomePage t={t} setPage={setPage} />}
+    {page === 'search' && <SearchPage t={t} />}
+    {page === 'login' && <LoginPage t={t} setPage={setPage} />}
+    {page === 'register' && <RegisterPage t={t} setPage={setPage} />}
+    {page === 'dashboard' && <DashboardPage t={t} />}
     </>
-  )
+  );
 }
-
-export default App
