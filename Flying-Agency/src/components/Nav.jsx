@@ -5,6 +5,8 @@ import Btn from './Btn.jsx';
 export default function Nav({ page, setPage, mode, toggleMode, t }) {
   const [sc, setSc] = useState(false);
   const [menu, setMenu] = useState(false);
+  const isAuthenticated = !!localStorage.getItem('token');
+
   useEffect(() => {
     const h = () => setSc(window.scrollY > 40);
     window.addEventListener('scroll', h);
@@ -56,15 +58,32 @@ export default function Nav({ page, setPage, mode, toggleMode, t }) {
             onMouseEnter={e => { e.currentTarget.style.borderColor = t.a; e.currentTarget.style.transform = 'rotate(20deg) scale(1.1)'; }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = t.border; e.currentTarget.style.transform = 'none'; }}
           >{mode === 'dark' ? '✦' : '◑'}</button>
-          <button onClick={() => setPage('login')} data-h style={{
-            background: 'transparent', border: `1px solid ${t.border}`, cursor: 'none',
-            padding: '7px 18px', borderRadius: 30, color: t.text,
-            fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 500, transition: 'all 0.3s'
-          }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = t.a; e.currentTarget.style.color = t.a; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = t.border; e.currentTarget.style.color = t.text; }}
-          >Sign In</button>
-          <Btn onClick={() => setPage('register')} t={t} sm>Join ✦</Btn>
+
+          {!isAuthenticated ? (
+            <>
+              <button onClick={() => setPage('login')} data-h style={{
+                background: 'transparent', border: `1px solid ${t.border}`, cursor: 'none',
+                padding: '7px 18px', borderRadius: 30, color: t.text,
+                fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 500, transition: 'all 0.3s'
+              }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = t.a; e.currentTarget.style.color = t.a; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = t.border; e.currentTarget.style.color = t.text; }}
+              >Sign In</button>
+              <Btn onClick={() => setPage('register')} t={t} sm>Join ✦</Btn>
+            </>
+          ) : (
+            <button onClick={() => {
+              localStorage.removeItem('token');
+              setPage('login');
+            }} data-h style={{
+              background: 'transparent', border: `1px solid ${t.border}`, cursor: 'none',
+              padding: '7px 18px', borderRadius: 30, color: '#FF3366',
+              fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 500, transition: 'all 0.3s'
+            }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = '#FF3366'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = t.border; }}
+            >Logout</button>
+          )}
         </div>
       </div>
     </nav>

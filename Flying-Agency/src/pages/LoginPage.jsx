@@ -31,7 +31,30 @@ export default function LoginPage({ t, setPage }) {
             <p style={{ color: t.textMuted, fontSize: 13 }}>{phase === 'login' ? 'Sign in to your account' : 'Enter the 6-digit code sent to your device'}</p>
           </div>
           {phase === 'login' && (
-            <form onSubmit={e => { e.preventDefault(); setLoading(true); setTimeout(() => { setLoading(false); setPhase('2fa'); }, 1100); }}
+            <form onSubmit={async e => { 
+              e.preventDefault(); 
+              setLoading(true); 
+              try {
+                const res = await fetch('http://localhost:5000/api/v1/auth/login', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ email, password: pass })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                  localStorage.setItem('token', data.token);
+                  setPhase('2fa'); 
+                } else {
+                  // For now, if we fail (e.g. they aren't in DB yet), let's just create a dummy token so they can pass to 2fa
+                  // Ideally we show an error: alert(data.error)
+                  alert(data.error || 'Login failed');
+                }
+              } catch (err) {
+                 alert('Server error or unreachable');
+              } finally {
+                setLoading(false); 
+              }
+            }}
               style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
                 <label style={{ display: 'block', marginBottom: 7, fontSize: 10, fontWeight: 700, color: t.textMuted, letterSpacing: 1.8, fontFamily: "'Space Mono',monospace" }}>EMAIL</label>

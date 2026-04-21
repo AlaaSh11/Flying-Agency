@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  fullName  String
+  role      String   @default("user") // user, agent, admin, omega
+  tier      String   @default("basic") // basic, premium, elite, omega
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bookings            Booking[]
+  surveillanceAlerts  SurveillanceAlert[]
+}
+
+model Destination {
+  id          String   @id @default(uuid())
+  name        String
+  country     String
+  code        String   @unique
+  description String
+  image       String
+  price       Float
+  popular     Boolean  @default(false)
+  category    String   // Standard, VIP, Unknown
+  createdAt   DateTime @default(now())
+
+  bookings    Booking[]
+}
+
+model Booking {
+  id            String   @id @default(uuid())
+  userId        String
+  destinationId String
+  status        String   @default("pending") // pending, confirmed, cancelled
+  travelDate    DateTime
+  guests        Int      @default(1)
+  totalPrice    Float
+  createdAt     DateTime @default(now())
+
+  user          User        @relation(fields: [userId], references: [id])
+  destination   Destination @relation(fields: [destinationId], references: [id])
+}
+
+model SurveillanceAlert {
+  id          String   @id @default(uuid())
+  userId      String?
+  targetName  String
+  riskLevel   String   // Low, Medium, High, Critical
+  status      String   @default("active")
+  location    String
+  createdAt   DateTime @default(now())
+
+  user        User?    @relation(fields: [userId], references: [id])
+}
+
+model ChronoTravel {
+  id             String   @id @default(uuid())
+  era            String
+  year           Int
+  location       String
+  description    String
+  temporalRisk   String   // Low, Medium, High
+  price          Float
+  createdAt      DateTime @default(now())
+}

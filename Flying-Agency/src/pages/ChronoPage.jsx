@@ -4,47 +4,32 @@ import StarField from "../components/StarField";
 import Pill from "../components/Pill";
 import Btn from "../components/Btn";
 
+import { apiClient } from "../api/client.js";
+
 export default function ChronoPage({ t }) {
   const [sel, setSel] = useState(null);
+  const [eras, setEras] = useState([]);
 
-  const eras = [
-    {
-      id: "egypt",
-      label: "Ancient Egypt",
-      year: "1350 BCE",
-      emoji: "𓂀",
-      img: "https://images.unsplash.com/photo-1539650116574-75c1ac1ef0dc?w=600&q=80",
-      desc: "Walk beside Pharaohs. Witness the Great Pyramids through immersive AR/VR reconstruction.",
-      feat: ["AR Guided Tour", "3D Monuments", "AI Pharaoh Guide"],
-    },
-    {
-      id: "medieval",
-      label: "Medieval Europe",
-      year: "1250 CE",
-      emoji: "⚔",
-      img: "https://images.unsplash.com/photo-1548759806-821b2dbc0e8d?w=600&q=80",
-      desc: "Enter the age of knights and castles. Attend royal feasts in authentic medieval halls.",
-      feat: ["Castle Walkthrough", "VR Jousting", "Banquet XP"],
-    },
-    {
-      id: "mars",
-      label: "Mars Colony",
-      year: "2247 CE",
-      emoji: "◎",
-      img: "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=600&q=80",
-      desc: "Preview humanity's future in AI-simulated Mars colony environments with zero-gravity VR.",
-      feat: ["Zero-G Simulation", "AI World", "Future Scenarios"],
-    },
-    {
-      id: "renaissance",
-      label: "Renaissance Florence",
-      year: "1497 CE",
-      emoji: "✦",
-      img: "https://images.unsplash.com/photo-1541370976299-4d24ebbc9077?w=600&q=80",
-      desc: "Stand in Leonardo's workshop. Experience the golden age of art in stunning 3D reconstruction.",
-      feat: ["Da Vinci Studio", "Gallery Immersion", "AI Narrator"],
-    },
-  ];
+  React.useEffect(() => {
+    let mounted = true;
+    apiClient("/api/v1/chrono/destinations")
+      .then((data) => {
+        if (mounted && data) {
+          setEras(data.map(d => ({
+            id: d.id,
+            label: d.name,
+            year: d.year + (d.era === 'BCE' ? ' BCE' : ' CE'),
+            emoji: d.emoji || "✦",
+            img: d.image || "https://images.unsplash.com/photo-1541370976299-4d24ebbc9077",
+            desc: d.description,
+            feat: ["AR Guided Tour", "VR Full Immersion"],
+            ...d
+          })));
+        }
+      })
+      .catch(err => console.error(err));
+    return () => { mounted = false; };
+  }, []);
 
   return (
     <div

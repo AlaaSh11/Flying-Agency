@@ -96,7 +96,31 @@ export default function RegisterPage({ t, setPage }) {
                 Ready, {form.name || 'Traveler'}!
               </h3>
               <p style={{ color: t.textMuted, lineHeight: 1.8, marginBottom: 28, fontSize: 13 }}>Your elite account is configured. Time to explore the world in pure style.</p>
-              <Btn onClick={() => { setLoading(true); setTimeout(() => setPage('dashboard'), 1000); }} t={t} full>
+              <Btn onClick={async () => { 
+                setLoading(true); 
+                try {
+                  const res = await fetch('http://localhost:5000/api/v1/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                      email: form.email, 
+                      password: form.pass, 
+                      fullName: form.name 
+                    })
+                  });
+                  const data = await res.json();
+                  if (res.ok) {
+                    localStorage.setItem('token', data.token);
+                    setPage('dashboard');
+                  } else {
+                    alert(data.error || 'Registration failed');
+                  }
+                } catch (err) {
+                  alert('Server error or unreachable');
+                } finally {
+                  setLoading(false);
+                }
+              }} t={t} full>
                 {loading ? 'Launching…' : '🚀 Start Exploring'}
               </Btn>
             </div>

@@ -6,14 +6,7 @@ import Btn from '../components/Btn.jsx';
 import Logo from '../components/Logo.jsx';
 import Ticker from '../components/Ticker.jsx';
 
-const DESTS = [
-  { id: 1, name: 'Santorini', country: 'Greece', img: 'https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=800&q=80', price: 899, tag: 'Romance', emoji: '🌊' },
-  { id: 2, name: 'Tokyo', country: 'Japan', img: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800&q=80', price: 1299, tag: 'Culture', emoji: '🌸' },
-  { id: 3, name: 'Maldives', country: 'Indian Ocean', img: 'https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=800&q=80', price: 2499, tag: 'Luxury', emoji: '🏝️' },
-  { id: 4, name: 'Machu Picchu', country: 'Peru', img: 'https://images.unsplash.com/photo-1587595431973-160d0d94add1?w=800&q=80', price: 1099, tag: 'Adventure', emoji: '🏔️' },
-  { id: 5, name: 'Dubai', country: 'UAE', img: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800&q=80', price: 1599, tag: 'Luxury', emoji: '✨' },
-  { id: 6, name: 'Amalfi', country: 'Italy', img: 'https://images.unsplash.com/photo-1533606688076-b6683a5f59f1?w=800&q=80', price: 1199, tag: 'Scenic', emoji: '🌺' },
-];
+import { apiClient } from '../api/client.js';
 
 const DARK_MODULES = [
   { id: 'surveillance', icon: '◉', title: 'Surveillance Network', desc: 'Pattern analysis & anomaly detection for authorized administrators.', c: '#CC44FF', c2: '#8844FF' },
@@ -28,7 +21,26 @@ export default function HomePage({ t, setPage }) {
   const [filter, setFilter] = useState('All');
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const heroRef = useRef();
-  const filtered = filter === 'All' ? DESTS : DESTS.filter(d => d.tag === filter);
+  const [dests, setDests] = useState([]);
+  const [trending, setTrending] = useState([]);
+
+  React.useEffect(() => {
+    let mounted = true;
+    apiClient('/api/v1/flights/trending').then(data => {
+      if (mounted && data) setTrending(data);
+    }).catch(err => console.error(err));
+    return () => { mounted = false; };
+  }, []);
+
+  React.useEffect(() => {
+    let mounted = true;
+    const q = filter === 'All' ? '' : `?category=${filter}`;
+    apiClient(`/api/v1/destinations${q}`).then(data => {
+      if (mounted && data) setDests(data);
+    }).catch(err => console.error(err));
+    return () => { mounted = false; };
+  }, [filter]);
+
   const handleMouseMove = useCallback(e => {
     if (!heroRef.current) return;
     const rect = heroRef.current.getBoundingClientRect();
@@ -98,14 +110,14 @@ export default function HomePage({ t, setPage }) {
               <span style={{ fontFamily: "'Playfair Display',serif", fontWeight: 700, fontSize: '0.9rem', color: t.text }}>Trending Now</span>
               <span style={{ fontFamily: "'Space Mono',monospace", fontSize: 9, color: t.a, letterSpacing: 1 }}>LIVE</span>
             </div>
-            {[{ n: 'Santorini', p: '$899', f: '🇬🇷' }, { n: 'Maldives', p: '$2,499', f: '🏝️' }, { n: 'Tokyo', p: '$1,299', f: '🇯🇵' }].map((d, i) => (
-              <div key={i} data-h style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: i < 2 ? `1px solid ${t.border}` : 'none', transition: 'all 0.3s', cursor: 'none' }}
+            {trending.length > 0 ? trending.map((d, i) => (
+              <div key={d.id || i} data-h style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: i < 2 ? `1px solid ${t.border}` : 'none', transition: 'all 0.3s', cursor: 'none' }}
                 onMouseEnter={e => e.currentTarget.style.paddingLeft = '8px'}
                 onMouseLeave={e => e.currentTarget.style.paddingLeft = '0'}>
-                <span style={{ color: t.textMuted, fontSize: 13 }}>{d.f} {d.n}</span>
-                <span style={{ fontFamily: "'Space Mono',monospace", fontSize: 12, color: t.a, fontWeight: 700 }}>{d.p}</span>
+                <span style={{ color: t.textMuted, fontSize: 13 }}>{d.emoji || '✈️'} {d.name}</span>
+                <span style={{ fontFamily: "'Space Mono',monospace", fontSize: 12, color: t.a, fontWeight: 700 }}>${d.price}</span>
               </div>
-            ))}
+            )) : <div style={{ color: t.textMuted, fontSize: 12 }}>Loading trends...</div>}
             <div data-h style={{ marginTop: 16, padding: '9px 0', borderRadius: 50, textAlign: 'center', background: t.badge, border: `1px solid ${t.border}`, color: t.a, fontSize: 12, fontWeight: 600, cursor: 'none', transition: 'all 0.3s' }}
               onMouseEnter={e => { e.currentTarget.style.background = t.grad; e.currentTarget.style.color = t.bg; }}
               onMouseLeave={e => { e.currentTarget.style.background = t.badge; e.currentTarget.style.color = t.a; }}
@@ -165,7 +177,7 @@ export default function HomePage({ t, setPage }) {
             </div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(295px,1fr))', gap: 22 }}>
-            {filtered.map((d, i) => (
+            {dests.map((d, i) => (
               <div key={d.id}
                 onMouseEnter={() => setHov(d.id)} onMouseLeave={() => setHov(null)}
                 onClick={() => setPage('search')} data-h
@@ -178,13 +190,13 @@ export default function HomePage({ t, setPage }) {
                   animation: `fadeUp 0.5s ease ${i * 0.07}s both`, position: 'relative',
                 }}>
                 <div style={{ position: 'relative', height: 210, overflow: 'hidden' }}>
-                  <img src={d.img} alt={d.name} style={{ width: '100%', height: '100%', objectFit: 'cover', transform: hov === d.id ? 'scale(1.1)' : 'scale(1)', filter: hov === d.id ? 'brightness(1.05)' : 'brightness(0.92)', transition: 'all 0.6s cubic-bezier(0.23,1,0.32,1)' }} />
+                  <img src={d.image || d.img || 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf'} alt={d.name} style={{ width: '100%', height: '100%', objectFit: 'cover', transform: hov === d.id ? 'scale(1.1)' : 'scale(1)', filter: hov === d.id ? 'brightness(1.05)' : 'brightness(0.92)', transition: 'all 0.6s cubic-bezier(0.23,1,0.32,1)' }} />
                   <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to top,${t.bgCard}dd 0%,transparent 55%)` }} />
                   <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(135deg,${t.a}22,${t.b}22)`, opacity: hov === d.id ? 1 : 0, transition: 'opacity 0.4s' }} />
                   <div style={{ position: 'absolute', top: 13, left: 13 }}>
-                    <span style={{ padding: '4px 13px', borderRadius: 20, fontSize: 10, fontWeight: 700, letterSpacing: 1, background: hov === d.id ? t.grad : t.badge, color: hov === d.id ? t.bg : t.a, fontFamily: "'Space Mono',monospace", transition: 'all 0.35s' }}>{d.tag}</span>
+                    <span style={{ padding: '4px 13px', borderRadius: 20, fontSize: 10, fontWeight: 700, letterSpacing: 1, background: hov === d.id ? t.grad : t.badge, color: hov === d.id ? t.bg : t.a, fontFamily: "'Space Mono',monospace", transition: 'all 0.35s' }}>{d.category || d.tag || 'Standard'}</span>
                   </div>
-                  <div style={{ position: 'absolute', top: 13, right: 13, fontSize: 18, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }}>{d.emoji}</div>
+                  <div style={{ position: 'absolute', top: 13, right: 13, fontSize: 18, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }}>{d.emoji || '🛫'}</div>
                 </div>
                 <div style={{ padding: '16px 20px 22px' }}>
                   <h3 style={{ fontFamily: "'Playfair Display',serif", fontWeight: 700, fontSize: '1.2rem', color: t.text }}>{d.name}</h3>

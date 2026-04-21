@@ -3,36 +3,75 @@ import Orbs from "../components/Orbs";
 import Pill from "../components/Pill";
 import Btn from "../components/Btn";
 
+import { apiClient } from "../api/client.js";
+
 export default function SurveillancePage({ t }) {
   const [scan, setScan] = useState(false);
   const [log, setLog] = useState([
     "[SYS] Surveillance network online.",
-    "[STATUS] 14,802 profiles monitored.",
-    "[AUDIT] Last sweep: all clear.",
   ]);
+  const [stats, setStats] = useState({ monitored: 0, alerts: 0, accuracy: 0, status: '...' });
+  const [alertsList, setAlertsList] = useState([]);
+  const [access, setAccess] = useState('checking');
 
-  const alerts = [
-    { id: "ALT-001", sub: "ID-7823", pat: "Frequent cross-border",    risk: "CRITICAL", ts: "15 Apr 14:23" },
-    { id: "ALT-002", sub: "ID-4412", pat: "Anomalous route deviation", risk: "HIGH",     ts: "15 Apr 12:10" },
-    { id: "ALT-003", sub: "ID-9901", pat: "Multiple alias booking",    risk: "HIGH",     ts: "14 Apr 09:55" },
-  ];
+  React.useEffect(() => {
+    let mounted = true;
+    apiClient('/api/v1/users/me/dashboard').then(u => {
+      if(!mounted) return;
+      if(u && (u.user.role === 'admin' || u.user.tier === 'tier_omega' || u.user.tier === 'omega')) {
+         setAccess('granted');
+         Promise.all([
+           apiClient("/api/v1/surveillance/stats"),
+           apiClient("/api/v1/surveillance/alerts")
+         ]).then(([st, al]) => {
+           if (mounted) {
+             if(st) setStats(st);
+             if(al) setAlertsList(al);
+             setLog(prev => [...prev, "[SYS] Backend synced."]);
+           }
+         }).catch(err => {
+           console.error(err);
+           if (mounted) setLog(prev => [...prev, "[ERR] Backend connection failed."]);
+         });
+      } else {
+         setAccess('denied');
+      }
+    }).catch(() => setAccess('denied'));
+    return () => { mounted = false; };
+  }, []);
 
   const rC = { CRITICAL: "#FF3366", HIGH: "#AA44FF", MEDIUM: "#6688FF" };
 
-  const runScan = () => {
+  const runScan = async () => {
     setScan(true);
-    const lines = [
-      "[PROC] Initiating deep pattern scan…",
-      "[ML] Running anomaly detection model…",
-      "[PROC] Cross-referencing 14,802 records…",
-      "[ALERT] 3 anomalies flagged.",
-      "[DONE] Scan complete.",
-    ];
-    lines.forEach((l, i) =>
-      setTimeout(() => setLog((p) => [...p, l]), i * 700)
-    );
-    setTimeout(() => setScan(false), lines.length * 700 + 200);
+    setLog(p => [...p, "[PROC] Initiating deep pattern scan…"]);
+    try {
+      const res = await apiClient("/api/v1/surveillance/scan", { method: 'POST' });
+      setLog(p => [...p, "[ALERT] " + res.message, "[DATA] " + JSON.stringify(res.alert)]);
+      setAlertsList(prev => [res.alert, ...prev]);
+    } catch (e) {
+      setLog(p => [...p, "[ERR] Scan failed: " + e.message]);
+    } finally {
+      setScan(false);
+      setLog(p => [...p, "[DONE] Scan complete."]);
+    }
   };
+
+  if (access === 'checking') {
+    return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: t.text }}>Establishing Secure Link...</div>;
+  }
+
+  if (access === 'denied') {
+    return (
+      <div style={{ background: t.bg, minHeight: '100vh', paddingTop: 120, paddingBottom: 80 }}>
+        <div style={{ maxWidth: 600, margin: '0 auto', textAlign: 'center', animation: 'fadeUp 0.4s ease both' }}>
+          <div style={{ fontSize: 60, marginBottom: 20 }}>🚫</div>
+          <h1 style={{ fontFamily: "'Playfair Display',serif", fontSize: '2.5rem', fontWeight: 700, color: t.text, marginBottom: 12 }}>Access Denied</h1>
+          <p style={{ color: t.textMuted, lineHeight: 1.6, marginBottom: 30 }}>Your cryptographic clearance does not permit entry to the global Surveillance Network. Contact Omega Vanguard command.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -98,10 +137,10 @@ export default function SurveillancePage({ t }) {
           }}
         >
           {[
-            { n: "14,802", l: "Monitored" },
-            { n: "3",      l: "Alerts"    },
-            { n: "99.7%",  l: "Accuracy"  },
-            { n: "LIVE",   l: "Status"    },
+            { n: `${stats.monitored}`, l: "Monitored" },
+            { n: `${stats.alerts}`,      l: "Alerts"    },
+            { n: `${stats.accuracy}%`,  l: "Accuracy"  },
+            { n: stats.status,   l: "Status"    },
           ].map((s, i) => (
             <div
               key={i}
@@ -235,7 +274,9 @@ export default function SurveillancePage({ t }) {
               ACTIVE ALERTS
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
-              {alerts.map((a, i) => (
+              {alertsList.map((a, i) => {
+                const riskColor = rC[a.riskLevel?.toUpperCase() || 'MEDIUM'] || '#6688FF';
+                return (
                 <div
                   key={i}
                   data-h
@@ -243,17 +284,17 @@ export default function SurveillancePage({ t }) {
                     padding: "12px 14px",
                     borderRadius: 11,
                     background: t.bg,
-                    border: `1px solid ${rC[a.risk]}33`,
+                    border: `1px solid ${riskColor}33`,
                     animation: `slideL 0.4s ease ${i * 0.09}s both`,
                     transition: "all 0.3s",
                     cursor: "none",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = rC[a.risk] + "66";
+                    e.currentTarget.style.borderColor = riskColor + "66";
                     e.currentTarget.style.transform = "translateX(4px)";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = rC[a.risk] + "33";
+                    e.currentTarget.style.borderColor = riskColor + "33";
                     e.currentTarget.style.transform = "none";
                   }}
                 >
@@ -271,8 +312,8 @@ export default function SurveillancePage({ t }) {
                           width: 6,
                           height: 6,
                           borderRadius: "50%",
-                          background: rC[a.risk],
-                          boxShadow: `0 0 8px ${rC[a.risk]}`,
+                          background: riskColor,
+                          boxShadow: `0 0 8px ${riskColor}`,
                         }}
                       />
                       <span
@@ -283,7 +324,7 @@ export default function SurveillancePage({ t }) {
                           fontWeight: 700,
                         }}
                       >
-                        {a.id}
+                        {a.id.slice(0,8)}
                       </span>
                     </div>
                     <span
@@ -292,19 +333,20 @@ export default function SurveillancePage({ t }) {
                         borderRadius: 7,
                         fontSize: 9,
                         fontWeight: 700,
-                        background: `${rC[a.risk]}1A`,
-                        color: rC[a.risk],
+                        background: `${riskColor}1A`,
+                        color: riskColor,
                         fontFamily: "'Space Mono', monospace",
+                        textTransform: 'uppercase'
                       }}
                     >
-                      {a.risk}
+                      {a.riskLevel || a.risk || 'MEDIUM'}
                     </span>
                   </div>
                   <div style={{ fontSize: 11, color: t.textMuted }}>
-                    {a.sub} · {a.pat}
+                    {a.targetName || a.sub} · {a.location || a.pat}
                   </div>
                 </div>
-              ))}
+              )})}
             </div>
           </div>
         </div>

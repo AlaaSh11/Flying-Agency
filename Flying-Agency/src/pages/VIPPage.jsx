@@ -4,10 +4,21 @@ import StarField from "../components/StarField";
 import Pill from "../components/Pill";
 import Btn from "../components/Btn";
 
+import { apiClient } from "../api/client.js";
+
 export default function VIPPage({ t }) {
   const [rev, setRev] = useState(false);
   const [form, setForm] = useState({ alias: "", dest: "", token: "" });
   const [focused, setFocused] = useState(null);
+  const [authorized, setAuthorized] = useState(null);
+
+  React.useEffect(() => {
+    let mounted = true;
+    apiClient("/api/v1/vip/status")
+      .then(() => { if (mounted) setAuthorized(true); })
+      .catch(() => { if (mounted) setAuthorized(false); });
+    return () => { mounted = false; };
+  }, []);
 
   const features = [
     {
@@ -53,6 +64,13 @@ export default function VIPPage({ t }) {
       <StarField n={40} />
       <Orbs t={t} />
 
+      {authorized === false ? (
+        <div style={{ maxWidth: 860, margin: "20vh auto 0", textAlign: "center", position: "relative", zIndex: 1 }}>
+          <div style={{ fontSize: 64, marginBottom: 20 }}>🛑</div>
+          <h1 style={{ fontFamily: "'Playfair Display', serif", fontWeight: 900, fontSize: "3rem", color: "#FF3366" }}>ACCESS DENIED</h1>
+          <p style={{ color: t.textMuted, fontSize: 16, marginTop: 14 }}>This sector requires Tier-Omega clearance.</p>
+        </div>
+      ) : authorized === true ? (
       <div
         style={{
           maxWidth: 860,
@@ -215,7 +233,20 @@ export default function VIPPage({ t }) {
                 Initiate Secure Request ♛
               </Btn>
             ) : (
-              <div
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                try {
+                  const res = await apiClient("/api/v1/vip/request", {
+                    method: "POST",
+                    body: JSON.stringify(form)
+                  });
+                  alert(res.message);
+                  setForm({ alias: "", dest: "", token: "" });
+                  setRev(false);
+                } catch (err) {
+                  alert(err.message);
+                }
+              }}
                 style={{
                   textAlign: "left",
                   maxWidth: 340,
@@ -247,6 +278,7 @@ export default function VIPPage({ t }) {
                         setForm((p) => ({ ...p, [f.k]: e.target.value }))
                       }
                       placeholder={f.p}
+                      required
                       style={{
                         width: "100%",
                         padding: "12px 15px",
@@ -269,11 +301,12 @@ export default function VIPPage({ t }) {
                 <Btn t={t} full sx={{ marginTop: 7 }}>
                   🔐 Submit Encrypted Request
                 </Btn>
-              </div>
+              </form>
             )}
           </div>
         </div>
       </div>
+      ) : null}
     </div>
   );
 }

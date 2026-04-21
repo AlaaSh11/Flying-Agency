@@ -206,9 +206,25 @@ export default function App() {
     }
 
     s.textContent = `::-webkit-scrollbar-thumb { background: ${t.scroll} }`;
+    
+    const handleUnauthorized = () => {
+      setPage("login");
+    };
+    window.addEventListener('unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('unauthorized', handleUnauthorized);
   }, [t]);
 
+
   const nav = (p) => {
+    const isProtected = ["dashboard", "surveillance", "vip", "chrono"].includes(p);
+    const token = localStorage.getItem("token");
+
+    if (isProtected && !token) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      setPage("login");
+      return;
+    }
+
     window.scrollTo({ top: 0, behavior: "smooth" });
     setPage(p);
   };

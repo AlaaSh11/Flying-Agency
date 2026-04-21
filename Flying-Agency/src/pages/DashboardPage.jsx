@@ -2,16 +2,36 @@ import React, { useState } from 'react';
 import Orbs from '../components/Orbs.jsx';
 import Pill from '../components/Pill.jsx';
 
-const bookings = [
-  { id: 'BK-2041', route: 'BEY → DXB', date: 'Apr 22, 2026', airline: 'Emirates', status: 'Confirmed', price: 340, img: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=400&q=70' },
-  { id: 'BK-2038', route: 'BEY → CDG', date: 'May 05, 2026', airline: 'Air France', status: 'Upcoming', price: 680, img: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=400&q=70' },
-  { id: 'BK-2029', route: 'IST → BEY', date: 'Mar 12, 2026', airline: 'Turkish Airlines', status: 'Completed', price: 290, img: 'https://images.unsplash.com/photo-1558618047-f4e75d5b1d5c?w=400&q=70' },
-];
-const sC = { Confirmed: '#55CC88', Upcoming: '#BB88FF', Completed: '#9090A0' };
+import { apiClient } from '../api/client.js';
+
+const sC = { confirmed: '#55CC88', pending: '#BB88FF', cancelled: '#9090A0' };
 
 export default function DashboardPage({ t }) {
   const [tab, setTab] = useState('bookings');
   const [hovRow, setHovRow] = useState(null);
+  const [expRow, setExpRow] = useState(null);
+  const [dashboardData, setDashboardData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    let mounted = true;
+    apiClient('/api/v1/users/me/dashboard').then(data => {
+      if (mounted && data) {
+        setDashboardData(data);
+        setLoading(false);
+      }
+    }).catch(err => {
+      console.error(err);
+      if (mounted) setLoading(false);
+    });
+    return () => { mounted = false; };
+  }, []);
+
+  if (loading) {
+    return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: t.text }}>Loading Dashboard...</div>;
+  }
+
+  const { user, bookings, upcoming, exportData } = dashboardData || {};
   return (
     <div style={{ background: t.bg, minHeight: '100vh', paddingTop: 90, paddingBottom: 80, transition: 'background 0.8s', position: 'relative' }}>
       <Orbs t={t} />
@@ -22,16 +42,16 @@ export default function DashboardPage({ t }) {
           <div style={{ position: 'absolute', right: -20, top: -20, width: 220, height: 220, borderRadius: '50%', background: `radial-gradient(circle,${t.o1},transparent 70%)`, pointerEvents: 'none' }} />
           <div style={{ position: 'absolute', left: 0, bottom: 0, height: 3, right: 0, background: t.grad, opacity: 0.4 }} />
           <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap', position: 'relative' }}>
-            <div style={{ width: 68, height: 68, borderRadius: 22, background: t.grad, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, color: t.bg, fontFamily: "'Playfair Display',serif", fontWeight: 700, boxShadow: `0 8px 26px ${t.glow}`, flexShrink: 0, animation: 'glowBreath 3s ease-in-out infinite' }}>A</div>
+            <div style={{ width: 68, height: 68, borderRadius: 22, background: t.grad, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, color: t.bg, fontFamily: "'Playfair Display',serif", fontWeight: 700, boxShadow: `0 8px 26px ${t.glow}`, flexShrink: 0, animation: 'glowBreath 3s ease-in-out infinite' }}>{user?.fullName?.[0]?.toUpperCase()}</div>
             <div style={{ flex: 1 }}>
-              <div style={{ marginBottom: 5 }}><Pill label="Gold Member ✦" t={t} /></div>
-              <h2 style={{ fontFamily: "'Playfair Display',serif", fontWeight: 700, fontSize: '1.45rem', color: t.text }}>Adam Dayekh</h2>
-              <p style={{ color: t.textMuted, fontSize: 12, marginTop: 3 }}>adam@ctrlelite.com · Member since 2025</p>
+              <div style={{ marginBottom: 5 }}><Pill label={`${user?.tier?.toUpperCase()} ✦`} t={t} /></div>
+              <h2 style={{ fontFamily: "'Playfair Display',serif", fontWeight: 700, fontSize: '1.45rem', color: t.text }}>{user?.fullName}</h2>
+              <p style={{ color: t.textMuted, fontSize: 12, marginTop: 3 }}>{user?.email}</p>
             </div>
             <div style={{ display: 'flex', gap: 24 }}>
-              {[{ n: '3', l: 'Bookings' }, { n: '12.4K', l: 'Miles' }, { n: 'Gold', l: 'Tier' }].map((s, i) => (
+              {[{ n: user?.bookingsCount || '0', l: 'Bookings' }, { n: user?.miles || '0', l: 'Miles' }, { n: user?.tier, l: 'Tier' }].map((s, i) => (
                 <div key={i} style={{ textAlign: 'center' }}>
-                  <div style={{ fontFamily: "'Playfair Display',serif", fontWeight: 700, fontSize: '1.45rem', background: t.grad, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{s.n}</div>
+                  <div style={{ fontFamily: "'Playfair Display',serif", fontWeight: 700, fontSize: '1.45rem', background: t.grad, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', textTransform: 'capitalize' }}>{s.n}</div>
                   <div style={{ color: t.textMuted, fontSize: 11, marginTop: 2 }}>{s.l}</div>
                 </div>
               ))}
@@ -41,7 +61,7 @@ export default function DashboardPage({ t }) {
 
         {/* Tabs */}
         <div style={{ display: 'flex', gap: 6, marginBottom: 22, background: t.bgCard, borderRadius: 15, padding: 5, border: `1px solid ${t.border}`, width: 'fit-content' }}>
-          {[{ id: 'bookings', l: 'My Bookings' }, { id: 'upcoming', l: 'Upcoming' }, { id: 'export', l: 'Export' }].map(tb => (
+          {[{ id: 'bookings', l: 'My Bookings' }, { id: 'upcoming', l: 'Upcoming' }, { id: 'export', l: 'Export' }, ...(user?.role === 'admin' ? [{id: 'admin', l: 'Admin Tools 🛡️'}] : [])].map(tb => (
             <button key={tb.id} onClick={() => setTab(tb.id)} data-h style={{
               background: tab === tb.id ? t.grad : 'transparent', border: 'none', cursor: 'none', padding: '8px 20px', borderRadius: 11,
               color: tab === tb.id ? t.bg : t.textMuted,
@@ -57,43 +77,65 @@ export default function DashboardPage({ t }) {
               <div key={i} data-h
                 style={{ background: t.bgCard, borderRadius: 20, overflow: 'hidden', border: `1px solid ${hovRow === i ? t.a + '55' : t.cardB}`, display: 'grid', gridTemplateColumns: 'auto 1fr auto', animation: `slideL 0.4s ease ${i * 0.09}s both`, transform: hovRow === i ? 'translateX(5px)' : 'none', transition: 'all 0.32s cubic-bezier(0.23,1,0.32,1)', boxShadow: hovRow === i ? `0 8px 28px ${t.glow}` : 'none' }}
                 onMouseEnter={() => setHovRow(i)} onMouseLeave={() => setHovRow(null)}>
-                <img src={b.img} alt="" style={{ width: 110, objectFit: 'cover', transition: 'filter 0.3s', filter: hovRow === i ? 'saturate(0.85)' : 'saturate(0.55)' }} />
+                <img src={b.destination?.image || 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c'} alt="" style={{ width: 110, objectFit: 'cover', transition: 'filter 0.3s', filter: hovRow === i ? 'saturate(0.85)' : 'saturate(0.55)' }} />
                 <div style={{ padding: '16px 20px' }}>
                   <div style={{ display: 'flex', gap: 9, alignItems: 'center', marginBottom: 5 }}>
-                    <h3 style={{ fontFamily: "'Playfair Display',serif", fontWeight: 700, fontSize: '1.05rem', color: t.text }}>{b.route}</h3>
-                    <span style={{ padding: '2px 10px', borderRadius: 20, fontSize: 9, fontWeight: 700, background: `${sC[b.status]}1A`, color: sC[b.status], fontFamily: "'Space Mono',monospace", letterSpacing: 0.5 }}>{b.status}</span>
+                    <h3 style={{ fontFamily: "'Playfair Display',serif", fontWeight: 700, fontSize: '1.05rem', color: t.text }}>{b.destination?.name} ({b.destination?.country})</h3>
+                    <span style={{ padding: '2px 10px', borderRadius: 20, fontSize: 9, fontWeight: 700, background: `${sC[b.status] || '#999'}1A`, color: sC[b.status] || '#999', fontFamily: "'Space Mono',monospace", letterSpacing: 0.5 }}>{b.status}</span>
                   </div>
-                  <p style={{ color: t.textMuted, fontSize: 12 }}>{b.airline} · {b.date}</p>
+                  <p style={{ color: t.textMuted, fontSize: 12 }}>{new Date(b.travelDate).toLocaleDateString()}</p>
                   <p style={{ color: t.textMuted, fontSize: 10, marginTop: 3, fontFamily: "'Space Mono',monospace" }}>{b.id}</p>
                 </div>
                 <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-end', gap: 9 }}>
-                  <div style={{ fontFamily: "'Space Mono',monospace", fontWeight: 700, fontSize: '1.15rem', background: t.grad, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>${b.price}</div>
-                  <button data-h style={{ background: 'transparent', border: `1px solid ${t.border}`, cursor: 'none', padding: '5px 13px', borderRadius: 9, color: t.textMuted, fontSize: 11, transition: 'all 0.3s' }}
+                  <div style={{ fontFamily: "'Space Mono',monospace", fontWeight: 700, fontSize: '1.15rem', background: t.grad, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>${b.price || b.totalPrice}</div>
+                  <button onClick={() => setExpRow(expRow === i ? null : i)} data-h style={{ background: 'transparent', border: `1px solid ${t.border}`, cursor: 'none', padding: '5px 13px', borderRadius: 9, color: t.textMuted, fontSize: 11, transition: 'all 0.3s' }}
                     onMouseEnter={e => { e.currentTarget.style.borderColor = t.a; e.currentTarget.style.color = t.a; }}
                     onMouseLeave={e => { e.currentTarget.style.borderColor = t.border; e.currentTarget.style.color = t.textMuted; }}>Details</button>
                 </div>
+                {expRow === i && (
+                  <div style={{ gridColumn: '1 / -1', padding: '18px 20px', borderTop: `1px solid ${t.border}`, background: t.bgCard2, color: t.textMuted, fontSize: 12 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
+                      <div>
+                        <div style={{ color: t.text, fontWeight: 700, marginBottom: 4 }}>Booking Reference</div>
+                        <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 10 }}>{b.id}</div>
+                      </div>
+                      <div>
+                        <div style={{ color: t.text, fontWeight: 700, marginBottom: 4 }}>Party Details</div>
+                        <div>{b.guests || 1} Guest(s)</div>
+                      </div>
+                      <div>
+                        <div style={{ color: t.text, fontWeight: 700, marginBottom: 4 }}>Payment Status</div>
+                        <div>Processed securely via Stripe</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
         )}
 
-        {tab === 'upcoming' && (
+        {tab === 'upcoming' && upcoming && upcoming.length > 0 ? (
           <div style={{ background: t.bgCard, borderRadius: 20, padding: 28, border: `1px solid ${t.border}`, textAlign: 'center', animation: 'fadeUp 0.4s ease both', position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(ellipse at 50% 0%,${t.o1},transparent 60%)`, pointerEvents: 'none' }} />
             <div style={{ position: 'relative' }}>
               <div style={{ fontSize: 44, marginBottom: 14 }}>✈️</div>
-              <h3 style={{ fontFamily: "'Playfair Display',serif", fontWeight: 700, fontSize: '1.4rem', color: t.text, marginBottom: 7 }}>Next Flight: BEY → DXB</h3>
-              <p style={{ color: t.textMuted, marginBottom: 24, fontSize: 13 }}>April 22, 2026 · Emirates EK 401 · 08:30</p>
+              <h3 style={{ fontFamily: "'Playfair Display',serif", fontWeight: 700, fontSize: '1.4rem', color: t.text, marginBottom: 7 }}>Next Trip: {upcoming[0].destination?.name}</h3>
+              <p style={{ color: t.textMuted, marginBottom: 24, fontSize: 13 }}>{new Date(upcoming[0].travelDate).toLocaleDateString()}</p>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 14 }}>
-                {[{ l: 'Days Until', n: '6' }, { l: 'Check-in Opens', n: '48h' }, { l: 'Your Seat', n: '14A' }].map((s, i) => (
+                {[{ l: 'Guests', n: upcoming[0].guests }, { l: 'Price Paid', n: `$${upcoming[0].totalPrice}` }, { l: 'Status', n: upcoming[0].status }].map((s, i) => (
                   <div key={i} style={{ background: t.bgCard2, borderRadius: 14, padding: '18px', transition: 'all 0.3s' }}
                     data-h onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = `0 8px 24px ${t.glow}`; }} onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}>
-                    <div style={{ fontFamily: "'Playfair Display',serif", fontSize: '1.5rem', fontWeight: 700, background: t.grad, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{s.n}</div>
+                    <div style={{ fontFamily: "'Playfair Display',serif", fontSize: '1.5rem', fontWeight: 700, background: t.grad, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', textTransform: 'capitalize' }}>{s.n}</div>
                     <div style={{ color: t.textMuted, fontSize: 11, marginTop: 4 }}>{s.l}</div>
                   </div>
                 ))}
               </div>
             </div>
+          </div>
+        ) : tab === 'upcoming' && (
+          <div style={{ background: t.bgCard, borderRadius: 20, padding: 28, border: `1px solid ${t.border}`, textAlign: 'center', animation: 'fadeUp 0.4s ease both' }}>
+            <p style={{ color: t.textMuted }}>No upcoming trips.</p>
           </div>
         )}
 
@@ -114,6 +156,39 @@ export default function DashboardPage({ t }) {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {tab === 'admin' && (
+          <div style={{ background: t.bgCard, borderRadius: 20, padding: 28, border: `1px solid ${t.border}`, animation: 'fadeUp 0.4s ease both' }}>
+            <h3 style={{ fontFamily: "'Playfair Display',serif", fontWeight: 700, fontSize: '1.25rem', color: t.text, marginBottom: 7 }}>Admin Omega Panel ✦</h3>
+            <p style={{ color: t.textMuted, fontSize: 13, marginBottom: 22 }}>Add new global destinations and flight routes directly into the database.</p>
+            <form onSubmit={async (e) => {
+               e.preventDefault();
+               const fd = new FormData(e.target);
+               const body = Object.fromEntries(fd.entries());
+               const res = await apiClient('/api/v1/destinations', { method: 'POST', body: JSON.stringify(body) });
+               if(res && !res.error) {
+                  alert('Successfully deployed flight constraint to Global Database!');
+                  e.target.reset();
+               } else {
+                  alert('Error deploying flight: ' + (res?.error || 'Unknown server error'));
+               }
+            }} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+               <input name="name" placeholder="Destination Name (e.g. New York)" required style={{ padding: '12px 16px', background: t.inp, border: `1px solid ${t.border}`, color: t.text, borderRadius: 12, outline: 'none' }} />
+               <input name="country" placeholder="Country (e.g. USA)" required style={{ padding: '12px 16px', background: t.inp, border: `1px solid ${t.border}`, color: t.text, borderRadius: 12, outline: 'none' }} />
+               <input name="price" placeholder="Base Price (e.g. 599)" type="number" required style={{ padding: '12px 16px', background: t.inp, border: `1px solid ${t.border}`, color: t.text, borderRadius: 12, outline: 'none' }} />
+               <select name="category" required style={{ padding: '12px 16px', background: t.inp, border: `1px solid ${t.border}`, color: t.text, borderRadius: 12, outline: 'none' }}>
+                  <option value="Luxury">Luxury</option>
+                  <option value="Romance">Romance</option>
+                  <option value="Culture">Culture</option>
+                  <option value="Adventure">Adventure</option>
+                  <option value="Scenic">Scenic</option>
+                  <option value="Omega Fleet">Omega Fleet</option>
+               </select>
+               <input name="image" placeholder="Image URL (Unsplash link) — Optional" style={{ gridColumn: '1 / -1', padding: '12px 16px', background: t.inp, border: `1px solid ${t.border}`, color: t.text, borderRadius: 12, outline: 'none' }} />
+               <button type="submit" style={{ gridColumn: '1 / -1', padding: 14, marginTop: 10, background: t.grad, border: 'none', color: t.bg, borderRadius: 12, fontWeight: 600, fontSize: 14, cursor: 'none' }}>Deploy Flight Route ✦</button>
+            </form>
           </div>
         )}
       </div>
