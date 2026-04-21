@@ -13,8 +13,8 @@ async function main() {
       email: 'adam@ctrlelite.com',
       password: adminPass,
       fullName: 'Adam Dayekh',
-      role: 'omega',
-      tier: 'omega',
+      role: 'admin',
+      tier: 'tier_omega',
     },
   });
 
