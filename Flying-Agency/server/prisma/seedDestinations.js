@@ -48,7 +48,7 @@ async function main() {
       country: 'Switzerland',
       code: 'ZRH-ALPS',
       description: 'Private helicopter drops on untouched powder peaks.',
-      image: 'https://images.unsplash.com/photo-1454452588320-b3021941eaeb',
+      image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b',
       price: 5500,
       popular: false,
       category: 'Adventure'
@@ -78,7 +78,7 @@ async function main() {
       country: 'Iceland',
       code: 'KEF-AUR',
       description: 'Glass igloo accommodations directly beneath the Aurora Borealis.',
-      image: 'https://images.unsplash.com/photo-1520701048601-cb12adab53d5',
+      image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b',
       price: 3100,
       popular: true,
       category: 'Scenic'
@@ -118,7 +118,7 @@ async function main() {
       country: 'USA',
       code: 'JFK-NYC',
       description: 'VIP helicopter tours and a Central Park penthouse suite.',
-      image: 'https://images.unsplash.com/photo-1496442226666-8d4d0e655336',
+      image: 'https://images.unsplash.com/photo-1490644658840-3f2e3f8c5625',
       price: 3500,
       popular: true,
       category: 'Luxury'
@@ -148,7 +148,7 @@ async function main() {
       country: 'Canada',
       code: 'YYC-BNF',
       description: 'Luxury log cabins surrounded by glacial lakes and snow-capped peaks.',
-      image: 'https://images.unsplash.com/photo-1513511197495-2cc02d6b38da',
+      image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b',
       price: 2600,
       popular: true,
       category: 'Scenic'
@@ -188,7 +188,7 @@ async function main() {
       country: 'Antarctica',
       code: 'USH-ANT',
       description: 'A 10-day luxury icebreaker expedition to the White Continent.',
-      image: 'https://images.unsplash.com/photo-1510202970634-11a541d24be4',
+      image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b',
       price: 12000,
       popular: false,
       category: 'Omega Fleet'
