@@ -70,5 +70,14 @@ router.get('/:id', async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
+// Delete a destination
+router.delete('/:id', authenticate, authorize('admin', 'omega'), async (req, res) => {
+  try {
+    await prisma.destination.delete({ where: { id: req.params.id } });
+    res.json({ message: 'Destination deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error or destination already booked' });
+  }
+});
 
 module.exports = router;

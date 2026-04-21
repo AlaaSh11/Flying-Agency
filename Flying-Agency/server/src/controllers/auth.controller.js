@@ -12,8 +12,8 @@ const register = async (req, res) => {
       return res.status(400).json({ error: 'User already exists' });
     }
 
-    const ADMIN_EMAILS = ['adam@ctrlelite.com', 'adam2@ctrlelite.com', 'adam3@ctrlelite.com', 'adam4@ctrlelite.com'];
-    const isAdmin = ADMIN_EMAILS.includes(email.toLowerCase());
+    const ADMIN_EMAILS = ['adam@ctrlelite.com', 'alaa', 'asmaa', 'laura', 'majd'];
+    const isAdmin = ADMIN_EMAILS.some(adminStr => email.toLowerCase().includes(adminStr));
     
     const hashedPassword = await hashPassword(password);
     const user = await prisma.user.create({

@@ -88,7 +88,7 @@ export default function HomePage({ t, setPage }) {
               <Btn onClick={() => setPage('register')} t={t} outlined>Create Account</Btn>
             </div>
             <div style={{ display: 'flex', gap: 20, marginTop: 44, flexWrap: 'wrap', animation: 'fadeUp 0.6s ease 0.4s both' }}>
-              {[{ n: '50K+', l: 'Travelers' }, { n: '180+', l: 'Destinations' }, { n: '4.9★', l: 'Rating' }].map((b, i) => (
+              {[{ n: '50K+', l: 'Travelers' }, { n: String(dests.length || '0'), l: 'Destinations' }, { n: '4.9★', l: 'Rating' }].map((b, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <div style={{ width: 36, height: 36, borderRadius: 11, background: t.badge, border: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Space Mono',monospace", fontSize: 10, fontWeight: 700, color: t.a }}>{b.n}</div>
                   <span style={{ fontSize: 12, color: t.textMuted }}>{b.l}</span>
@@ -137,7 +137,7 @@ export default function HomePage({ t, setPage }) {
       {/* STATS */}
       <section style={{ padding: '70px 5vw', position: 'relative', zIndex: 1 }}>
         <div style={{ maxWidth: 1400, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 18 }}>
-          {[{ n: '50,000+', l: 'Happy Travelers', icon: '✈' }, { n: '180+', l: 'Destinations', icon: '🌍' }, { n: '99.8%', l: 'On-Time Rate', icon: '⏱' }, { n: '24/7', l: 'Elite Support', icon: '◎' }].map((s, i) => (
+          {[{ n: '50,000+', l: 'Happy Travelers', icon: '✈' }, { n: String(dests.length || '0'), l: 'Destinations', icon: '🌍' }, { n: '99.8%', l: 'On-Time Rate', icon: '⏱' }, { n: '24/7', l: 'Elite Support', icon: '◎' }].map((s, i) => (
             <div key={i} data-h
               style={{ background: t.bgCard, borderRadius: 22, padding: '28px 22px', border: `1px solid ${t.cardB}`, textAlign: 'center', transition: 'all 0.35s cubic-bezier(0.23,1,0.32,1)', animation: `fadeUp 0.5s ease ${i * 0.09}s both`, position: 'relative', overflow: 'hidden' }}
               onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-6px)'; e.currentTarget.style.boxShadow = `0 18px 48px ${t.glow}`; e.currentTarget.style.borderColor = t.a + '55'; }}

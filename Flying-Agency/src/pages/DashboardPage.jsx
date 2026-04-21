@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Orbs from '../components/Orbs.jsx';
 import Pill from '../components/Pill.jsx';
 
@@ -12,8 +12,9 @@ export default function DashboardPage({ t }) {
   const [expRow, setExpRow] = useState(null);
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [adminDests, setAdminDests] = useState([]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     let mounted = true;
     apiClient('/api/v1/users/me/dashboard').then(data => {
       if (mounted && data) {
@@ -26,6 +27,14 @@ export default function DashboardPage({ t }) {
     });
     return () => { mounted = false; };
   }, []);
+
+  useEffect(() => {
+    if (tab === 'admin') {
+      apiClient('/api/v1/destinations').then(data => {
+        if(data && !data.error) setAdminDests(data);
+      });
+    }
+  }, [tab]);
 
   if (loading) {
     return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: t.text }}>Loading Dashboard...</div>;
@@ -189,6 +198,29 @@ export default function DashboardPage({ t }) {
                <input name="image" placeholder="Image URL (Unsplash link) — Optional" style={{ gridColumn: '1 / -1', padding: '12px 16px', background: t.inp, border: `1px solid ${t.border}`, color: t.text, borderRadius: 12, outline: 'none' }} />
                <button type="submit" style={{ gridColumn: '1 / -1', padding: 14, marginTop: 10, background: t.grad, border: 'none', color: t.bg, borderRadius: 12, fontWeight: 600, fontSize: 14, cursor: 'none' }}>Deploy Flight Route ✦</button>
             </form>
+            
+            <h4 style={{ fontFamily: "'Playfair Display',serif", fontWeight: 700, fontSize: '1.1rem', color: t.text, marginTop: 40, marginBottom: 15 }}>Manage Active Destinations</h4>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 10, maxHeight: '400px', overflowY: 'auto', paddingRight: 10 }}>
+               {adminDests.map(d => (
+                 <div key={d.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: t.bgCard2, padding: '12px 16px', borderRadius: 12, border: `1px solid ${t.border}` }}>
+                   <div>
+                     <div style={{ fontWeight: 600, color: t.text }}>{d.name} <span style={{ color: t.textMuted, fontSize: 11, marginLeft: 6 }}>({d.code})</span></div>
+                     <div style={{ fontSize: 11, color: t.a }}>{d.country} — ${d.price}</div>
+                   </div>
+                   <button onClick={async () => {
+                     if(window.confirm('Are you sure you want to delete this destination?')) {
+                       const res = await apiClient(`/api/v1/destinations/${d.id}`, { method: 'DELETE' });
+                       if(res && !res.error) {
+                         setAdminDests(prev => prev.filter(x => x.id !== d.id));
+                       } else {
+                         alert(res?.error || 'Failed to delete');
+                       }
+                     }
+                   }} style={{ background: '#FF336622', color: '#FF3366', border: '1px solid #FF3366', padding: '6px 12px', borderRadius: 8, fontSize: 11, cursor: 'none' }}>Remove</button>
+                 </div>
+               ))}
+               {adminDests.length === 0 && <p style={{color: t.textMuted, fontSize: 12}}>Loading or no destinations found...</p>}
+            </div>
           </div>
         )}
       </div>
