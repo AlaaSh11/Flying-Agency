@@ -3,6 +3,7 @@ import Orbs from '../components/Orbs.jsx';
 import Sparkles from '../components/Sparkles.jsx';
 import Logo from '../components/Logo.jsx';
 import Btn from '../components/Btn.jsx';
+import { apiClient } from '../api/client';
 
 export default function RegisterPage({ t, setPage }) {
   const [step, setStep] = useState(1);
@@ -99,24 +100,18 @@ export default function RegisterPage({ t, setPage }) {
               <Btn onClick={async () => { 
                 setLoading(true); 
                 try {
-                  const res = await fetch('http://localhost:5000/api/v1/auth/register', {
+                  const data = await apiClient('/api/v1/auth/register', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                       email: form.email, 
                       password: form.pass, 
                       fullName: form.name 
                     })
                   });
-                  const data = await res.json();
-                  if (res.ok) {
-                    localStorage.setItem('token', data.token);
-                    setPage('dashboard');
-                  } else {
-                    alert(data.error || 'Registration failed');
-                  }
+                  localStorage.setItem('token', data.token);
+                  setPage('dashboard');
                 } catch (err) {
-                  alert('Server error or unreachable');
+                  alert(err.message || 'Registration failed');
                 } finally {
                   setLoading(false);
                 }

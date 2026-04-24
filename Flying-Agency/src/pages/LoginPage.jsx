@@ -3,6 +3,7 @@ import Orbs from '../components/Orbs.jsx';
 import Sparkles from '../components/Sparkles.jsx';
 import Logo from '../components/Logo.jsx';
 import Btn from '../components/Btn.jsx';
+import { apiClient } from '../api/client';
 
 export default function LoginPage({ t, setPage }) {
   const [email, setEmail] = useState('');
@@ -35,22 +36,14 @@ export default function LoginPage({ t, setPage }) {
               e.preventDefault(); 
               setLoading(true); 
               try {
-                const res = await fetch('http://localhost:5000/api/v1/auth/login', {
+                const data = await apiClient('/api/v1/auth/login', {
                   method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ email, password: pass })
                 });
-                const data = await res.json();
-                if (res.ok) {
-                  localStorage.setItem('token', data.token);
-                  setPhase('2fa'); 
-                } else {
-                  // For now, if we fail (e.g. they aren't in DB yet), let's just create a dummy token so they can pass to 2fa
-                  // Ideally we show an error: alert(data.error)
-                  alert(data.error || 'Login failed');
-                }
+                localStorage.setItem('token', data.token);
+                setPhase('2fa'); 
               } catch (err) {
-                 alert('Server error or unreachable');
+                 alert(err.message || 'Login failed');
               } finally {
                 setLoading(false); 
               }
