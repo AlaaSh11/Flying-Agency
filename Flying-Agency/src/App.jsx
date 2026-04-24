@@ -205,7 +205,14 @@ export default function App() {
       document.head.appendChild(s);
     }
 
-    s.textContent = `::-webkit-scrollbar-thumb { background: ${t.scroll} }`;
+    s.textContent = `
+      ::-webkit-scrollbar-thumb { background: ${t.scroll} }
+      @media (pointer: coarse), (max-width: 1024px) {
+        #cur, #cur-ring { display: none !important; }
+        * { cursor: auto !important; }
+        a, button, [role="button"], [data-h] { cursor: pointer !important; }
+      }
+    `;
     
     const handleUnauthorized = () => {
       setPage("login");
