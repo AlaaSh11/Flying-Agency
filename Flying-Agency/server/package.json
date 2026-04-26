@@ -4,7 +4,7 @@
   "description": "Backend API for CTRL ELITE Travel Agency",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "npx prisma generate && node server.js",
     "dev": "nodemon server.js",
     "build": "prisma generate",
     "seed": "node prisma/seed.js"
