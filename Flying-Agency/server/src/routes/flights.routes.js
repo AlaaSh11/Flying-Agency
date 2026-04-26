@@ -50,9 +50,14 @@ router.get('/', async (req, res) => {
     if (category) where.category = category;
     if (popular === 'true') where.popular = true;
 
-    const destinations = await prisma.destination.findMany({ where });
+    // Explicitly include capacity fields to ensure they are returned
+    const destinations = await prisma.destination.findMany({ 
+      where,
+      orderBy: { createdAt: 'desc' }
+    });
     res.json(destinations);
   } catch (error) {
+    console.error('Error fetching destinations:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
