@@ -69,7 +69,7 @@ export default function HomePage({ t, setPage }) {
           background: `radial-gradient(circle,${t.o1},transparent 70%)`,
           transform: 'translate(-50%,-50%)', pointerEvents: 'none', transition: 'left 0.4s ease,top 0.4s ease'
         }} />
-        <div style={{ position: 'relative', zIndex: 2, maxWidth: 1400, margin: '0 auto', padding: '130px 5vw 80px', width: '100%' }}>
+        <div className="hero-content-inner" style={{ position: 'relative', zIndex: 2, maxWidth: 1400, margin: '0 auto', padding: '130px 5vw 80px', width: '100%' }}>
           <div style={{ maxWidth: 680 }}>
             <div style={{ marginBottom: 22, animation: 'fadeUp 0.6s ease both' }}><Pill label="✦ Premium Travel Agency" t={t} lg /></div>
             <h1 style={{ fontFamily: "'Playfair Display',serif", fontWeight: 900, fontSize: 'clamp(3.2rem,8vw,6.8rem)', lineHeight: 0.98, color: t.text, marginBottom: 4, animation: 'fadeUp 0.6s ease 0.08s both' }}>Fly in</h1>
@@ -83,11 +83,11 @@ export default function HomePage({ t, setPage }) {
             <p style={{ fontSize: '1.1rem', color: t.textMuted, maxWidth: 480, lineHeight: 1.9, marginBottom: 42, animation: 'fadeUp 0.6s ease 0.24s both' }}>
               Curated journeys for those who demand the extraordinary — from sun-drenched coasts to worlds beyond time.
             </p>
-            <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', animation: 'fadeUp 0.6s ease 0.32s both' }}>
+            <div className="hero-btns-row" style={{ display: 'flex', gap: 14, flexWrap: 'wrap', animation: 'fadeUp 0.6s ease 0.32s both' }}>
               <Btn onClick={() => setPage('search')} t={t}>Explore Flights ✦</Btn>
               <Btn onClick={() => setPage('register')} t={t} outlined>Create Account</Btn>
             </div>
-            <div style={{ display: 'flex', gap: 20, marginTop: 44, flexWrap: 'wrap', animation: 'fadeUp 0.6s ease 0.4s both' }}>
+            <div className="hero-stats-row" style={{ display: 'flex', gap: 20, marginTop: 44, flexWrap: 'wrap', animation: 'fadeUp 0.6s ease 0.4s both' }}>
               {[{ n: '50K+', l: 'Travelers' }, { n: String(dests.length || '0'), l: 'Destinations' }, { n: '4.9★', l: 'Rating' }].map((b, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <div style={{ width: 36, height: 36, borderRadius: 11, background: t.badge, border: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Space Mono',monospace", fontSize: 10, fontWeight: 700, color: t.a }}>{b.n}</div>
@@ -97,8 +97,8 @@ export default function HomePage({ t, setPage }) {
             </div>
           </div>
 
-          {/* Floating glass card */}
-          <div style={{
+          {/* Floating glass card - Responsive positioning */}
+          <div className="hero-trending-card" style={{
             position: 'absolute', right: '5vw', top: '50%', transform: 'translateY(-42%)',
             width: 295, background: `${t.bgCard}ee`, borderRadius: 26, padding: 26,
             border: `1px solid ${t.borderH}`, backdropFilter: 'blur(20px)',
@@ -111,19 +111,41 @@ export default function HomePage({ t, setPage }) {
               <span style={{ fontFamily: "'Space Mono',monospace", fontSize: 9, color: t.a, letterSpacing: 1 }}>LIVE</span>
             </div>
             {trending.length > 0 ? trending.map((d, i) => (
-              <div key={d.id || i} data-h style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: i < 2 ? `1px solid ${t.border}` : 'none', transition: 'all 0.3s', cursor: 'none' }}
-                onMouseEnter={e => e.currentTarget.style.paddingLeft = '8px'}
-                onMouseLeave={e => e.currentTarget.style.paddingLeft = '0'}>
+              <div key={d.id || i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: i < 2 ? `1px solid ${t.border}` : 'none', transition: 'all 0.3s' }}>
                 <span style={{ color: t.textMuted, fontSize: 13 }}>{d.emoji || '✈️'} {d.name}</span>
                 <span style={{ fontFamily: "'Space Mono',monospace", fontSize: 12, color: t.a, fontWeight: 700 }}>${d.price}</span>
               </div>
             )) : <div style={{ color: t.textMuted, fontSize: 12 }}>Loading trends...</div>}
-            <div data-h style={{ marginTop: 16, padding: '9px 0', borderRadius: 50, textAlign: 'center', background: t.badge, border: `1px solid ${t.border}`, color: t.a, fontSize: 12, fontWeight: 600, cursor: 'none', transition: 'all 0.3s' }}
-              onMouseEnter={e => { e.currentTarget.style.background = t.grad; e.currentTarget.style.color = t.bg; }}
-              onMouseLeave={e => { e.currentTarget.style.background = t.badge; e.currentTarget.style.color = t.a; }}
-            >View All Deals →</div>
+            <div style={{ marginTop: 16, padding: '9px 0', borderRadius: 50, textAlign: 'center', background: t.badge, border: `1px solid ${t.border}`, color: t.a, fontSize: 12, fontWeight: 600, transition: 'all 0.3s' }}>
+              View All Deals →
+            </div>
           </div>
         </div>
+
+        <style>{`
+          @media (max-width: 1024px) {
+            .hero-trending-card {
+              position: relative !important;
+              right: auto !important;
+              top: auto !important;
+              transform: none !important;
+              width: 100% !important;
+              max-width: 400px;
+              margin-top: 40px;
+              animation: fadeIn 1s both !important;
+            }
+            .hero-content-inner {
+              padding-top: 100px !important;
+              text-align: center;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+            }
+            .hero-stats-row, .hero-btns-row {
+              justify-content: center !important;
+            }
+          }
+        `}</style>
 
         {/* Scroll indicator */}
         <div style={{ position: 'absolute', bottom: 30, left: '50%', transform: 'translateX(-50%)', textAlign: 'center', animation: 'pulse 2.5s infinite', zIndex: 2 }}>
@@ -136,7 +158,7 @@ export default function HomePage({ t, setPage }) {
 
       {/* STATS */}
       <section style={{ padding: '70px 5vw', position: 'relative', zIndex: 1 }}>
-        <div style={{ maxWidth: 1400, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 18 }}>
+        <div className="stats-grid" style={{ maxWidth: 1400, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 18 }}>
           {[{ n: '50,000+', l: 'Happy Travelers', icon: '✈' }, { n: String(dests.length || '0'), l: 'Destinations', icon: '🌍' }, { n: '99.8%', l: 'On-Time Rate', icon: '⏱' }, { n: '24/7', l: 'Elite Support', icon: '◎' }].map((s, i) => (
             <div key={i} data-h
               style={{ background: t.bgCard, borderRadius: 22, padding: '28px 22px', border: `1px solid ${t.cardB}`, textAlign: 'center', transition: 'all 0.35s cubic-bezier(0.23,1,0.32,1)', animation: `fadeUp 0.5s ease ${i * 0.09}s both`, position: 'relative', overflow: 'hidden' }}
@@ -152,6 +174,14 @@ export default function HomePage({ t, setPage }) {
             </div>
           ))}
         </div>
+        <style>{`
+          @media (max-width: 1024px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          }
+          @media (max-width: 600px) {
+            .stats-grid { grid-template-columns: 1fr !important; }
+          }
+        `}</style>
       </section>
 
       {/* DESTINATIONS */}

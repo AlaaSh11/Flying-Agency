@@ -144,6 +144,10 @@ const THEMES = {
 // ── Cursor Hook ────────────────────────────────────────
 function useCursor(t) {
   useEffect(() => {
+    // ── Skip custom cursor on mobile/touch ──
+    const isMobile = window.matchMedia("(max-width: 1024px), (pointer: coarse)").matches;
+    if (isMobile) return;
+
     const dot = document.getElementById("cur");
     const ring = document.getElementById("cur-ring");
     if (!dot || !ring) return;

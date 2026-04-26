@@ -55,8 +55,8 @@ body {
 }
 
 #root {
-  width: 1126px;
-  max-width: 100%;
+  width: 100%;
+  max-width: 1126px;
   margin: 0 auto;
   text-align: center;
   border-inline: 1px solid var(--border);
@@ -64,6 +64,12 @@ body {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+}
+
+@media (max-width: 1024px) {
+  #root {
+    border-inline: none;
+  }
 }
 
 h1,
@@ -113,3 +119,13 @@ code {
 * {
   cursor: none;
 }
+
+@media (max-width: 1024px), (pointer: coarse) {
+  * {
+    cursor: auto !important;
+  }
+  #cur, #cur-ring {
+    display: none !important;
+  }
+}
+
