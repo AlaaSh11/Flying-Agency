@@ -17,7 +17,14 @@ const app = express();
 
 // Security Middlewares
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+  origin: [
+    'https://flying-agency.vercel.app',
+    'http://localhost:5173',
+    'http://localhost:5000',
+  ],
+  credentials: true,
+}));
 app.use(express.json());
 
 // Logging

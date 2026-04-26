@@ -14,17 +14,13 @@ export const apiClient = async (endpoint, options = {}) => {
 
   if (response.status === 401) {
     localStorage.removeItem('token');
-    // If the window is available, trigger custom event or reload/redirect
     window.dispatchEvent(new Event('unauthorized'));
     return null;
   }
 
   const contentType = response.headers.get("content-type");
   if (contentType && contentType.indexOf("application/json") !== -1) {
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'API Error');
-    }
+    // Always return the JSON body — let the caller check for .error
     return response.json();
   }
   
@@ -33,3 +29,4 @@ export const apiClient = async (endpoint, options = {}) => {
   }
   return response.text();
 };
+
