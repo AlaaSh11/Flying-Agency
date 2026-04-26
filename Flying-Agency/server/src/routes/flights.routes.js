@@ -50,9 +50,23 @@ router.get('/', async (req, res) => {
     if (category) where.category = category;
     if (popular === 'true') where.popular = true;
 
-    // Explicitly include capacity fields to ensure they are returned
+    // Explicitly select all fields to force Prisma to return them
     const destinations = await prisma.destination.findMany({ 
       where,
+      select: {
+        id: true,
+        name: true,
+        country: true,
+        code: true,
+        description: true,
+        image: true,
+        price: true,
+        popular: true,
+        category: true,
+        capacity: true,
+        seatsBooked: true,
+        createdAt: true
+      },
       orderBy: { createdAt: 'desc' }
     });
     res.json(destinations);
