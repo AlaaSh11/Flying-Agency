@@ -31,6 +31,8 @@ model Destination {
   price       Float
   popular     Boolean  @default(false)
   category    String   // Standard, VIP, Unknown
+  capacity    Int      @default(100) // Max seats available
+  seatsBooked Int      @default(0)  // Running count of confirmed bookings
   createdAt   DateTime @default(now())
 
   bookings    Booking[]

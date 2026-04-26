@@ -13,6 +13,28 @@ export default function DashboardPage({ t }) {
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [adminDests, setAdminDests] = useState([]);
+  const [cancellingId, setCancellingId] = useState(null);
+
+  const cancelBooking = async (bookingId) => {
+    if (!window.confirm('Are you sure you want to cancel this booking? Seats will be restored.')) return;
+    setCancellingId(bookingId);
+    try {
+      const res = await apiClient(`/api/v1/bookings/${bookingId}/cancel`, { method: 'PATCH' });
+      if (res.booking) {
+        setDashboardData(prev => ({
+          ...prev,
+          bookings: prev.bookings.map(b => b.id === bookingId ? { ...b, status: 'cancelled' } : b),
+          upcoming: prev.upcoming?.filter(b => b.id !== bookingId),
+        }));
+      } else {
+        alert(res.error || 'Failed to cancel booking.');
+      }
+    } catch (err) {
+      alert('Error cancelling booking.');
+    } finally {
+      setCancellingId(null);
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -100,6 +122,17 @@ export default function DashboardPage({ t }) {
                   <button onClick={() => setExpRow(expRow === i ? null : i)} data-h style={{ background: 'transparent', border: `1px solid ${t.border}`, cursor: 'none', padding: '5px 13px', borderRadius: 9, color: t.textMuted, fontSize: 11, transition: 'all 0.3s' }}
                     onMouseEnter={e => { e.currentTarget.style.borderColor = t.a; e.currentTarget.style.color = t.a; }}
                     onMouseLeave={e => { e.currentTarget.style.borderColor = t.border; e.currentTarget.style.color = t.textMuted; }}>Details</button>
+                  {b.status !== 'cancelled' && (
+                    <button
+                      onClick={() => cancelBooking(b.id)}
+                      disabled={cancellingId === b.id}
+                      data-h
+                      style={{ background: 'transparent', border: '1px solid #FF336644', cursor: 'none', padding: '5px 13px', borderRadius: 9, color: cancellingId === b.id ? t.textMuted : '#FF6B6B', fontSize: 11, transition: 'all 0.3s', opacity: cancellingId === b.id ? 0.5 : 1 }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = '#FF3366'; e.currentTarget.style.background = '#FF336611'; }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor = '#FF336644'; e.currentTarget.style.background = 'transparent'; }}>
+                      {cancellingId === b.id ? 'Cancelling…' : 'Cancel'}
+                    </button>
+                  )}
                 </div>
                 {expRow === i && (
                   <div style={{ gridColumn: '1 / -1', padding: '18px 20px', borderTop: `1px solid ${t.border}`, background: t.bgCard2, color: t.textMuted, fontSize: 12 }}>

@@ -47,10 +47,22 @@ export default function SearchPage({ t, setPage }) {
            travelDate: dep || new Date().toISOString()
         })
       });
-      if(res.booking) {
+      if (res.booking) {
+         // ── Update local seat counts immediately so UI reflects the change ──
+         const updateSeats = (list) =>
+           list.map(d => d.id === destId ? { ...d, seatsBooked: d.seatsBooked + pax } : d);
+         setDests(prev => updateSeats(prev));
+         setDisplayedResults(prev => updateSeats(prev));
+
          setPayLoad(false);
          setChkDest(null);
          setPage('dashboard');
+      } else if (res.error === 'Not enough seats available') {
+         setPayLoad(false);
+         alert(`This flight is fully booked or doesn't have enough seats.\nAvailable: ${res.availableSeats}, Requested: ${res.requestedSeats}`);
+      } else {
+         setPayLoad(false);
+         alert(res.error || 'Booking failed. Please try again.');
       }
     } catch(err) {
       setPayLoad(false);
@@ -171,8 +183,15 @@ export default function SearchPage({ t, setPage }) {
                     </div>
                     <div style={{ textAlign: 'right', minWidth: 82 }}>
                       <div style={{ fontFamily: "'Space Mono',monospace", fontSize: '1.3rem', fontWeight: 700, background: t.grad, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>${r.price}</div>
-                      <div style={{ fontSize: 10, color: t.textMuted, marginBottom: 8 }}>per person</div>
-                      <Btn onClick={(e) => { e.stopPropagation(); setChkDest(r); }} t={t} sm sx={{ padding: '6px 16px', fontSize: 12 }}>Check Out</Btn>
+                      <div style={{ fontSize: 10, color: t.textMuted, marginBottom: 4 }}>per person</div>
+                      {r.capacity != null && (
+                        <div style={{ fontSize: 9, color: (r.capacity - r.seatsBooked) <= 5 ? '#FF6B6B' : t.a, fontFamily: "'Space Mono',monospace", marginBottom: 8, letterSpacing: 0.5 }}>
+                          {r.capacity - r.seatsBooked <= 0 ? '⚠ FULLY BOOKED' : `${r.capacity - r.seatsBooked} seats left`}
+                        </div>
+                      )}
+                      <Btn onClick={(e) => { e.stopPropagation(); if ((r.capacity - r.seatsBooked) > 0) setChkDest(r); }} t={t} sm sx={{ padding: '6px 16px', fontSize: 12, opacity: (r.capacity - r.seatsBooked) <= 0 ? 0.4 : 1, pointerEvents: (r.capacity - r.seatsBooked) <= 0 ? 'none' : 'auto' }}>
+                        {(r.capacity - r.seatsBooked) <= 0 ? 'Full' : 'Check Out'}
+                      </Btn>
                     </div>
                   </div>
                   {sel === i && (
@@ -208,6 +227,11 @@ export default function SearchPage({ t, setPage }) {
               <div>
                 <div style={{ color: t.textMuted, fontSize: 12, marginBottom: 4 }}>Total for {pax} Guest(s)</div>
                 <div style={{ color: t.text, fontSize: 13, fontWeight: 500 }}>{chkDest.name}</div>
+                {chkDest.capacity != null && (
+                  <div style={{ fontSize: 10, marginTop: 4, color: (chkDest.capacity - chkDest.seatsBooked) <= 5 ? '#FF6B6B' : t.a, fontFamily: "'Space Mono',monospace" }}>
+                    {chkDest.capacity - chkDest.seatsBooked} seat(s) available
+                  </div>
+                )}
               </div>
               <div style={{ fontFamily: "'Space Mono',monospace", fontSize: '1.8rem', background: t.grad, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontWeight: 700 }}>${chkDest.price * pax}</div>
             </div>
